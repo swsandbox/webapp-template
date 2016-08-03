@@ -1,0 +1,48 @@
+# Logs
+*.log
+
+# Runtime data
+*.pid
+*.seed
+
+# Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
+.grunt
+
+# Dependency directory
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
+node_modules
+
+# Mac files
+.DS_Store
+
+# Distribution
+dist
+
+# IDE files
+.classpath
+.idea
+.project
+.settings
+*.iml
+
+# Git
+.git
+
+# Docs
+docs
+
+.vscode
+.vscode/**
+
+/coverage_legacy
+/coverage
+coverage_legacy/
+coverage/
+/sandbox
+.xml
+
+
+# sandbox files
+sandbox.js
+./sandbox/sandbox.js
+./sandbox/**

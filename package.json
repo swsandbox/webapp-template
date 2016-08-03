@@ -1,0 +1,28 @@
+{
+  "name": "portal",
+  "version": "1.0.0",
+  "description": "Portal",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "less": "node less_compile.js",
+    "concat": "node js_concat.js"
+  },
+  "author": "Software Sandbox",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "angular": "1.5.8",
+    "angular-animate": "1.5.8",
+    "angular-aria": "1.5.8",
+    "angular-material": "1.1.0-rc.5",
+    "express": "4.14.0",
+    "less": "2.7.1",
+    "lodash": "4.14.1",
+    "moment": "2.14.1",
+    "socket.io": "1.4.8"
+  },
+  "devDependencies": {
+    "less-plugin-clean-css": "1.5.1",
+    "nodemon": "1.10.0"
+  }
+}
