@@ -1,1 +1,1 @@
-body{margin:0}
+.slide-left{transition:all linear .1s;transform:translate(0)}.slide-left.ng-hide{transform:translate(50px);opacity:0}

@@ -9,5 +9,5 @@ var path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/lib', express.static(path.join('node_modules')));
 
-module.exports.app = app;
+module.exports.server = server;
 module.exports.io = io;

@@ -1,8 +1,13 @@
 'use strict';
 
-let app = require('./server').app;
+let server = require('./server').server;
 let port = process.env.PORT || 3000;
 
-app.listen(port, function () {
+require('./events');
+
+server.listen(port, function () {
     console.log(`listening on ${port}`);
 });
+
+
+
