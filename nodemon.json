@@ -1,11 +1,11 @@
 {
   "execMap": {
-    "js":"npm run less; npm run concat; node src/app.js"
+    "js":"npm run dist; npm run less; npm run concat; node dist/app.js"
   },
   "ignore": [
     ".git",
     "node_modules/**/node_modules",
     "node_modules/**",
-    "src/public/**"
+    "dist/**"
   ]
 }
