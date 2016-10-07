@@ -6,3 +6,4 @@ Starting point for a modern html/css/js webapp backed by an express webserver.
 - uses less for styling
 - uses socket.io for real-time communication
 - uses nodemon for filewatcher / auto-recompile
+- uses vue 2.0 for clientside js framework
