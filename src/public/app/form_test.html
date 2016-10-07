@@ -1,0 +1,245 @@
+<html lang="en">
+<head>
+    <title>SWSB</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--load font-->
+    <link href="/lib/lato-font/css/lato-font.css" rel="stylesheet">
+
+    <!--load font-awesome-->
+    <link href="/lib/font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <!--normalize-->
+    <link rel="stylesheet" href="/lib/normalize.css/normalize.css">
+
+    <!--custom style-->
+    <link rel="stylesheet" href="styles.css">
+
+    <!--lodash-->
+    <script type="application/javascript" src="/lib/lodash/lodash.js"></script>
+
+    <!--moment-->
+    <script type="application/javascript" src="/lib/moment/moment.js"></script>
+
+    <!--md5-->
+    <script type="application/javascript" src="/lib/js-md5/src/md5.js"></script>
+
+    <!--jquery-->
+    <script type="application/javascript" src="/lib/jquery/dist/jquery.min.js"></script>
+
+    <!--vue-->
+    <script type="application/javascript" src="/lib/vue/dist/vue.js"></script>
+
+    <!--socket.io-->
+    <script type="application/javascript" src="/socket.io/socket.io.js"></script>
+
+    <!--custom script-->
+    <script type="application/javascript" src="app.js"></script>
+
+    <style type="text/css">
+
+        html, body {
+            font-family: 'Lato', Arial, sans-serif;
+        }
+
+        body, input {
+            line-height: 1em;
+            font-size: 1em;
+            margin: 10px;
+        }
+
+        input {
+            height: 1em;
+            padding: 0;
+            margin: 0;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        .input-group .icon-group {
+            display: flex;
+        }
+
+        .input-group label {
+            font-size: .75em;
+            color: #3a5663;
+        }
+
+        .input-group input {
+            /*width: 100%;*/
+            border: 0;
+            border-bottom: 1px solid black;
+            outline: none;
+            flex: 1;
+        }
+
+        .input-group .icon-group::before {
+            font-family: 'FontAwesome';
+            font-size: .75em;
+            margin-right: 5px;
+        }
+
+        .input-group:not(.valid) .icon-group::before {
+            content: '\f071';
+            color: darkred;
+        }
+
+        .input-group.valid .icon-group::before {
+            content: '\f00c';
+            color: darkgreen;
+        }
+
+        .input-group span {
+            font-size: .75em;
+        }
+
+        .input-group:not(.valid) span {
+            color: darkred;
+        }
+
+        .input-group:not(.valid) input {
+            border-bottom-color: darkred;
+        }
+
+        .input-group:not(.dirty) label {
+            transform: translate(1em, 1em);
+            pointer-events: none;
+            transition: 150ms ease;
+            font-size: 1em;
+            opacity: .4;
+        }
+
+        .input-group input:focus ~ label {
+            transform: translate(0, 0);
+            font-size: .75em;
+        }
+    </style>
+
+
+</head>
+
+<body>
+
+<div id="app">
+    <dynamic-form>
+        <div slot="fields">
+            <dynamic-input label='Username' v-model='userData.name'></dynamic-input>
+            <dynamic-input label='Password' v-model='userData.password' required="true" min-length="3" max-length="10" format="[a-z]{0,12}"></dynamic-input>
+        </div>
+        <div slot="buttons">
+            <br/>
+            <button v-on:click="login()">Submit</button>
+        </div>
+    </dynamic-form>
+    Value of userData: {{userData}}
+</div>
+
+
+<script type="application/javascript">
+
+    Vue.component('dynamic-input', {
+        template: '<div class="input-group" v-bind:class="{dirty: isDirty, valid: isValid}">' +
+        '<span>{{validationMessage}}</span>' +
+        '<div class="icon-group"><input :id="fieldId" type="text" v-model="dirtyVal" v-on:input="onInput"></div>' +
+        '<label :for="fieldId">{{label}}</label>' +
+        '</div>',
+        props: ['label', 'value', 'required', 'format', 'flags', 'minLength', 'maxLength'],
+        data: function () {
+            return {
+                fieldId: 'field_' + parseInt(Math.random(1) * 10000000),
+                dirtyVal: this.value,
+                isValid: true,
+                validationMessage: '',
+            };
+        },
+        computed: {
+            isDirty: function (){
+                return this.dirtyVal ? this.dirtyVal.length > 0 : false;
+            },
+            formatRegExp: function () {
+                return new RegExp('^' + (this.format || '.*') + '$', this.flags || 'i');
+            }
+        },
+        methods: {
+            onInput: function (evt) {
+                this.$emit('input', evt.target.value);
+                this.validate();
+            },
+            validate: function() {
+                if (this.required === 'true' && (this.dirtyVal || '').length <= 0) {
+                    this.validationMessage = 'This field is required.  You must enter a valid value.';
+                } else if (!this.formatRegExp.test(this.dirtyVal)) {
+                    this.validationMessage = 'The format of this field is invalid.';
+                } else if (this.minLength && (this.dirtyVal || '').length < parseInt(this.minLength)) {
+                    this.validationMessage = 'The length of the value must be at least ' + this.minLength + '.';
+                } else if (this.maxLength && (this.dirtyVal || '').length > parseInt(this.maxLength)) {
+                    this.validationMessage = 'The length of the value must not be more than ' + this.maxLength + '.';
+                } else {
+                    this.validationMessage = '';
+                }
+                this.isValid = this.validationMessage.length === 0;
+                this.isDirty = this.dirtyVal ? this.dirtyVal.length > 0 : false;
+
+                this.$parent.$emit('fieldExists', {
+                    id: this.fieldId,
+                    dirty: this.isDirty,
+                    valid: this.isValid
+                });
+            }
+        },
+        mounted: function () {
+            this.validate();
+        }
+    });
+
+    Vue.component('dynamic-form', {
+        template: '<div>' +
+        '<slot name="fields"></slot>' +
+        '<slot name="buttons"></slot>' +
+        '<p>Form is: dirty: {{dirty}}, valid: {{valid}}</p>' +
+        '</div>',
+        data: function (){
+            return {
+                fields: {},
+                dirty: false,
+                valid: true
+            };
+        },
+        created: function () {
+            this.$on('fieldExists', function (field){
+                this.fields[field.id] = {dirty: field.dirty, valid: field.valid};
+                this.dirty = !_.isNil(_.find(this.fields, function (f){
+                    return f.dirty;
+                }));
+                this.valid = _.isNil(_.find(this.fields, function (f){
+                    return !f.valid;
+                }));
+            });
+        }
+    });
+
+
+
+    new Vue({
+        el: '#app',
+        data: {
+            userData: {
+                name: 'Jesse',
+                password: 'Password1'
+            }
+        },
+        methods: {
+            login: function () {
+                console.log('Hello', this.userData);
+            }
+        }
+    });
+
+</script>
+
+</body>
+</html>

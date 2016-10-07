@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Portal",
   "scripts": {
-
     "dev": "node dist_copy.js;nodemon ./dist/app.js --watch src -e js,json,less,html ./dist/app.js",
     "less": "node less_compile.js",
     "concat": "node js_concat.js",
@@ -13,14 +12,20 @@
   "license": "UNLICENSED",
   "dependencies": {
     "express": "4.14.0",
+    "flexboxgrid": "6.3.1",
+    "font-awesome": "4.6.3",
     "fs-extra": "0.30.0",
     "jquery": "3.1.0",
     "js-md5": "0.4.1",
+    "lato-font": "1.1.1",
     "less": "2.7.1",
     "lodash": "4.14.1",
+    "marked": "0.3.6",
     "moment": "2.14.1",
     "node-uuid": "1.4.7",
-    "socket.io": "1.4.8"
+    "normalize.css": "4.2.0",
+    "socket.io": "1.4.8",
+    "vue": "2.0.0-rc.6"
   },
   "devDependencies": {
     "babel-core": "6.11.4",

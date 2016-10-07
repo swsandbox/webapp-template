@@ -1,0 +1,242 @@
+<html lang="en">
+<head>
+    <title>SWSB</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--load font-->
+    <link href="/lib/lato-font/css/lato-font.css" rel="stylesheet">
+
+    <!--load font-awesome-->
+    <link href="/lib/font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <!--normalize-->
+    <link rel="stylesheet" href="/lib/normalize.css/normalize.css">
+
+    <!--custom style-->
+    <link rel="stylesheet" href="styles.css">
+
+    <!--lodash-->
+    <script type="application/javascript" src="/lib/lodash/lodash.js"></script>
+
+    <!--moment-->
+    <script type="application/javascript" src="/lib/moment/moment.js"></script>
+
+    <!--md5-->
+    <script type="application/javascript" src="/lib/js-md5/src/md5.js"></script>
+
+    <!--jquery-->
+    <script type="application/javascript" src="/lib/jquery/dist/jquery.min.js"></script>
+
+    <!--marked-->
+    <script type="application/javascript" src="/lib/marked/lib/marked.js"></script>
+
+    <!--vue-->
+    <script type="application/javascript" src="/lib/vue/dist/vue.js"></script>
+
+    <!--socket.io-->
+    <script type="application/javascript" src="/socket.io/socket.io.js"></script>
+
+    <!--custom script-->
+    <script type="application/javascript" src="app.js"></script>
+
+    <style type="text/css">
+
+        html, body {
+            font-family: 'Lato', Arial, sans-serif;
+            margin-left: 200px;
+        }
+
+        .floating_menu {
+            position: fixed;
+            top:0;
+            left: 0;
+            height: 100%;
+        }
+
+        h1,h2 {
+            margin-bottom: 400px;
+        }
+
+        li {
+            font-weight: normal;
+        }
+
+        li a {
+            cursor: pointer;
+        }
+
+        li.active {
+            font-weight: bold;
+        }
+
+
+    </style>
+
+
+</head>
+
+<body>
+
+<div id="app">
+
+    <content-spy>
+        <div slot="content">
+            <h1 id="s1">Section 1</h1>
+            <h1 id="s2">Section 2</h1>
+            <h2 id="s1:s1">Sub-Section 1</h2>
+            <h2 id="s1:s2">Sub-Section 2</h2>
+            <h3 id="s1:s2:s1">Sub-Sub Section 1</h3>
+            <h1 id="s3">Section 3</h1>
+        </div>
+    </content-spy>
+
+</div>
+
+<script type="application/javascript">
+
+    Vue.component('contentSpy',{
+        template: `
+            <div>
+                <slot name="menu">
+                    <ul class="floating_menu">
+                        <li v-for="section in sections" :class="{active: section.node.key === activeSection}">
+                            <a @click="scrollTo(section.node.pos)">{{section.node.val}}</a>
+                            <ul v-if="section.children.length > 0">
+                                <li v-for="child in section.children" :class="{active: child.node.key === activeSection}">
+                                    <a @click="scrollTo(child.node.pos)">{{child.node.val}}</a>
+                                    <ul v-if="child.children.length > 0">
+                                        <li v-for="grandChild in child.children" :class="{active: grandChild.node.key === activeSection}">
+                                            <a @click="scrollTo(grandChild.node.pos)">{{grandChild.node.val}}</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </slot>
+
+                <slot name="content"></slot>
+            </div>
+        `,
+        data: function () {
+            return {
+                sections: [],
+                sectionPos: [],
+                activeSection: null,
+                scrollPos: 0,
+                scrollOffset: 40
+            };
+        },
+        watch: {
+            scrollPos: function(val) {
+                this.calculateActiveSection();
+            }
+        },
+        methods: {
+            scrollTo: function (pos) {
+                console.log('scrolling to pos', pos);
+                $('html, body').stop().animate({
+                    scrollTop: pos
+                }, 200);
+            },
+            calculateActiveSection: function() {
+                if (_.isNil(this.activeSection)) {
+                    this.activeSection = _.result(this.sectionPos, '0.key', null);
+                }
+
+                let foundSection = _.find(this.sectionPos, (s)=>{
+                            return this.scrollPos - this.scrollOffset < s.pos;
+                        }) || _.last(this.sectionPos);
+
+                if (!_.isNil(foundSection)) {
+                    this.activeSection = foundSection.key;
+                }
+            },
+            calculateSections: function() {
+                let sections = [];
+                let sectionKeys = {};
+                let sectionPos = [];
+                let currentRoot = null;
+                let currentLevelOne = null;
+                let currentLevelTwo = null;
+                $('h1,h2,h3').map((i,e)=>{
+                    let key = e.id;
+                    let val = $(e).text();
+                    let level = {
+                        'h1': 0,
+                        'h2': 1,
+                        'h3': 2
+                    }[(e.nodeName || '').toLowerCase()];
+                    let pos = e.offsetTop;
+
+                    let node = {
+                        key: key,
+                        val: val,
+                        level: level,
+                        pos: pos
+                    };
+
+                    if (_.isNil(sectionKeys[key])) {
+                        sectionKeys[key] = node;
+                        sectionPos.push(node);
+                        if (level === 0) {
+                            let child = {node: node, children: []};
+                            sections.push(child);
+                            currentRoot = child;
+                            currentLevelOne = null;
+                            currentLevelTwo = null;
+                        } else if (level === 1 && !_.isNil(currentRoot)) {
+                            let child = {node: node, children: []};
+                            currentRoot.children.push(child);
+                            currentLevelOne = child;
+                        } else if (level === 2 && !_.isNil(currentLevelOne)) {
+                            let child = {node: node, children: []};
+                            currentLevelOne.children.push(child);
+                            currentLevelTwo = child;
+                        } else if (level === 3 && !_.isNil(currentLevelTwo)) {
+                            let child = {node: node, children: []};
+                            currentLevelTwo.children.push(child);
+                        } else {
+                            console.warn('level is not configured', node);
+                        }
+
+                    } else {
+                        console.warn('duplicate key detected', node);
+                    }
+                });
+                this.sections = sections;
+                this.sectionPos = sectionPos;
+            }
+        },
+        mounted: function () {
+            this.calculateSections();
+            this.calculateActiveSection();
+
+            let windowHeight = $(window).height();
+
+            $(window).scroll((e)=>{
+                this.scrollPos = $(window).scrollTop();
+            });
+
+            $(window).resize((e)=>{
+                if ($(window).height() != windowHeight) {
+                    windowHeight = $(window).height();
+                    this.calculateSections();
+                }
+            });
+        },
+        beforeDestroy: function () {
+            $(window).off('scroll');
+        }
+    });
+
+
+    new Vue({
+        el: '#app'
+    });
+
+</script>
+
+</body>
+</html>
